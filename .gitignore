@@ -331,3 +331,4 @@ credentials.json
 ### chalice ###
 .chalice/deployments/
 .chalice/venv/
+.env
