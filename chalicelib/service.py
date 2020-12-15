@@ -7,7 +7,7 @@ import utils
 def post_node(node):
     response = requests.post(f"{settings.SENSORS_AFRICA_API}/v2/nodes/",
     data=node,
-    headers={"Authorization": f"Token {Ssettings.ENSORS_AFRICA_AUTH_TOKEN}"})
+    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()['id']
 
