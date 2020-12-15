@@ -32,18 +32,26 @@ def post_sensor_type(sensor_type):
     if response.ok:
         return response.json()['id']
 
-def post_sensor_data(data, node_uid):
+def post_sensor_data(data, node_uid, pin):
     response = requests.post(f"{settings.SENSORS_AFRICA_API}/v1/push-sensor-data/",
     json=data,
     headers={
         "Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}",
-        "X_SENSOR": str(node_uid)
+        "X_SENSOR": str(node_uid),
+        "NODE": pin
         }
     )
     if response.ok:
         return response.json()
     return []
 
+def get_sensors_africa_sensors():
+    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v2/sensors/",
+    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    if response.ok:
+        return response.json()
+    return []
+    
 def get_sensors_africa_nodes():
     response = requests.get(f"{settings.SENSORS_AFRICA_API}/v1/node/",
     headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
@@ -73,8 +81,9 @@ def get_airqo_node_sensors_data(node_id):
     return []
 
 #def run();
-nodes = get_sensors_africa_nodes()
 locations = get_sensors_africa_locations()
+nodes = get_sensors_africa_nodes()
+sensors = get_sensors_africa_sensors()
 
 with open("./channels.json") as data:
     channels = json.load(data)
@@ -112,24 +121,28 @@ with open("./channels.json") as data:
         # field4 - Sensor2 PM10_CF_1_ug/m3
         value_type = ["P2", "P1", "P2", "P1"]
         for i in range (1, 5):
-            sensor_id = post_sensor({
-                "node": airqo_node,
-                "pin": str(i),
-                "descriptiion": "",
-                "sensor_type": 1,
-                "public": True
-            })
-            
-        for feed in channel_data["feeds"]:
-            sensor_data_values = []
-            for i in range (1, 5):
-                sensor_data_values.append({
-                    "created": feed["created_at"],
-                    "modified":feed["created_at"],
-                    "value": float(feed["field{}".format(str(i))]),
-                    "value_type": value_type[i-1]
+            #post sensor objects if it does not exist
+            sensor_id = [sensor.get("id") for sensor in sensors if sensor.get('pin') == str(i) and sensor.get('node') == airqo_node]
+            if sensor_id:
+                sensor_id = sensor_id[0]
+            else:
+                sensor_id = post_sensor({
+                    "node": airqo_node,
+                    "pin": str(i),
+                    "descriptiion": "",
+                    "sensor_type": 1,
+                    "public": True
                 })
-
-            post_sensor_data(sensor_data_values, channel["id"])
+            
+            for feed in channel_data["feeds"]:
+                sensor_data_values = [{
+                        # "created": feed["created_at"],
+                        # "modified":feed["created_at"],
+                        "value": float(feed["field{}".format(str(i))]),
+                        "value_type": value_type[i-1]
+                    }]
+                # print(sensor_data_values)
+                post_sensor_data({ "sensordatavalues": sensor_data_values, "sensor": sensor_id }, channel["id"], str(i))
+        break
 
 
