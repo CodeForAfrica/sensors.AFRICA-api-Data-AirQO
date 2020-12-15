@@ -15,4 +15,3 @@ def run():
 def periodic_task(event):
     app.log.debug(event.to_dict())
     return service.run(app)
-
