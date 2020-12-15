@@ -45,13 +45,15 @@ def post_sensor_data(data, node_uid):
     return []
 
 def get_sensors_africa_nodes():
-    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v1/node/", auth=(settings.SENSORS_AFRICA_USER, settings.SENSORS_AFRICA_PASSWORD))
+    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v1/node/",
+    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()
     return []
 
 def get_sensors_africa_locations():
-    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v2/locations/", headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v2/locations/", 
+    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         """
             Using latitude, longitude as a key and location id as value to help us find already existing location latter without having to ping the server
@@ -118,15 +120,16 @@ with open("./channels.json") as data:
                 "public": True
             })
             
-        sensor_data_values = []
         for feed in channel_data["feeds"]:
-            sensor_data_values.append({
-                "created": feed["created_at"],
-                "modified":feed["created_at"],
-                "value": float(feed["field{}".format(str(i))]),
-                "value_type": value_type[i-1]
-            })
+            sensor_data_values = []
+            for i in range (1, 5):
+                sensor_data_values.append({
+                    "created": feed["created_at"],
+                    "modified":feed["created_at"],
+                    "value": float(feed["field{}".format(str(i))]),
+                    "value_type": value_type[i-1]
+                })
 
-        post_sensor_data(sensor_data_values, airqo_node)
+            post_sensor_data(sensor_data_values, channel["id"])
 
 
