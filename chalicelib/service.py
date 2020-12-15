@@ -62,8 +62,6 @@ def get_airqo_node_sensors_data(node_id):
 nodes = get_sensors_africa_nodes()
 locations = get_sensors_africa_locations()
 
-print(nodes)
-
 with open("./channels.json") as data:
     channels = json.load(data)
 
@@ -89,14 +87,13 @@ with open("./channels.json") as data:
         if airqo_node:
             airqo_node = airqo_node[0]
         else:
-            airqo_node = post_node(node={"uid": channel["id"], 'owner': OWNER_ID, 'location': location})
+            airqo_node = post_node(node={"uid": channel["id"], 'owner': settings.OWNER_ID, 'location': location})
 
         # aiqo channel result has 4 sensors data that we need
         # field1- Sensor1 PM2.5_CF_1_ug/m3, 
         # field2 -Sensor1 PM2.5_CF_1_ug/m3, 
         # field3 - Sensor2PM2.5_CF_1_ug/m3, 
         # field4 - Sensor2 PM10_CF_1_ug/m3
-        print(airqo_node)
         for i in range (1, 5):
             post_sensor({
                 "node": airqo_node,
