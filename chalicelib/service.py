@@ -80,64 +80,61 @@ def get_airqo_node_sensors_data(node_id):
         return response.json()
     return []
 
-#def run();
-locations = get_sensors_africa_locations()
-nodes = get_sensors_africa_nodes()
-sensors = get_sensors_africa_sensors()
+def run();
+    locations = get_sensors_africa_locations()
+    nodes = get_sensors_africa_nodes()
+    sensors = get_sensors_africa_sensors()
 
-with open("./channels.json") as data:
-    channels = json.load(data)
+    with open("./channels.json") as data:
+        channels = json.load(data)
 
-    for channel in channels:
-        lat_log = f'{channel["latitude"]}, {channel["longitude"]}'
-        address = utils.address_converter(lat_log)
-        
-        location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
-
-        if location:
-            location = location[0]
-        else:
-            location = post_location({
-                "location": address.get("display_name"),
-                "latitude": channel["latitude"],
-                "longitude": channel["longitude"],
-                "country": address.get("country"),
-                "postalcode": address.get("postcode")
-            })
-
-        #post node objects if it does not exist
-        airqo_node = [node.get("id") for node in nodes if node.get('uid') == str(channel["id"])]
-        if airqo_node:
-            airqo_node = airqo_node[0]
-        else:
-            airqo_node = post_node(node={"uid": channel["id"], 'owner': settings.OWNER_ID, 'location': location})
-
-
-        channel_data = get_airqo_node_sensors_data(channel["id"])
-        # aiqo channel result has 4 sensors data that we need
-        # field1- Sensor1 PM2.5_CF_1_ug/m3, 
-        # field2 -Sensor1 PM10_CF_1_ug/m3, 
-        # field3 - Sensor2PM2.5_CF_1_ug/m3, 
-        # field4 - Sensor2 PM10_CF_1_ug/m3
-        value_type = ["P2", "P1", "P2", "P1"]
-        for i in range (1, 5):
-            sensor_id = post_sensor({
-                "node": airqo_node,
-                "pin": str(i),
-                "descriptiion": "",
-                "sensor_type": 1,
-                "public": True
-            })
+        for channel in channels:
+            lat_log = f'{channel["latitude"]}, {channel["longitude"]}'
+            address = utils.address_converter(lat_log)
             
-            for feed in channel_data["feeds"]:
-                sensor_data_values = [{
-                        "created": feed["created_at"],
-                        "modified":feed["created_at"],
-                        "value": float(feed["field{}".format(str(i))]),
-                        "value_type": value_type[i-1]
-                    }]
-                # print(sensor_data_values)
-                post_sensor_data({ "sensordatavalues": sensor_data_values }, channel["id"], str(i))
-        break
+            location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
+
+            if location:
+                location = location[0]
+            else:
+                location = post_location({
+                    "location": address.get("display_name"),
+                    "latitude": channel["latitude"],
+                    "longitude": channel["longitude"],
+                    "country": address.get("country"),
+                    "postalcode": address.get("postcode")
+                })
+
+            #post node objects if it does not exist
+            airqo_node = [node.get("id") for node in nodes if node.get('uid') == str(channel["id"])]
+            if airqo_node:
+                airqo_node = airqo_node[0]
+            else:
+                airqo_node = post_node(node={"uid": channel["id"], 'owner': settings.OWNER_ID, 'location': location})
 
 
+            channel_data = get_airqo_node_sensors_data(channel["id"])
+            # aiqo channel result has 4 sensors data that we need
+            # field1- Sensor1 PM2.5_CF_1_ug/m3, 
+            # field2 -Sensor1 PM10_CF_1_ug/m3, 
+            # field3 - Sensor2PM2.5_CF_1_ug/m3, 
+            # field4 - Sensor2 PM10_CF_1_ug/m3
+            value_type = ["P2", "P1", "P2", "P1"]
+            for i in range (1, 5):
+                sensor_id = post_sensor({
+                    "node": airqo_node,
+                    "pin": str(i),
+                    "descriptiion": "",
+                    "sensor_type": 1,
+                    "public": True
+                })
+                
+                for feed in channel_data["feeds"]:
+                    sensor_data_values = [{
+                            "created": feed["created_at"],
+                            "modified":feed["created_at"],
+                            "value": float(feed["field{}".format(str(i))]),
+                            "value_type": value_type[i-1]
+                        }]
+                    # print(sensor_data_values)
+                    post_sensor_data({ "sensordatavalues": sensor_data_values }, channel["id"], str(i))
