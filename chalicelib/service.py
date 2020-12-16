@@ -12,7 +12,7 @@ def post_node(node):
     response = requests.post(f"{SENSORS_AFRICA_API}/v2/nodes/",
     data=node,
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
-    if response.ok:
+    if response.ok and "id" in response.json():
         return response.json()['id']
 
 def post_location(location):
@@ -89,7 +89,7 @@ def run():
     nodes = get_sensors_africa_nodes()
     sensors = get_sensors_africa_sensors()
 
-    with open("./channels.json") as data:
+    with open("chalicelib/channels.json") as data:
         channels = json.load(data)
 
         for channel in channels:
