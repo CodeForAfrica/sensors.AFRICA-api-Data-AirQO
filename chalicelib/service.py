@@ -1,42 +1,46 @@
 import json
 import requests
 
-import settings
-import utils
+from chalicelib.settings import (
+    SENSORS_AFRICA_API,
+    SENSORS_AFRICA_AUTH_TOKEN, 
+    OWNER_ID
+)
+from chalicelib.utils import address_converter
 
 def post_node(node):
-    response = requests.post(f"{settings.SENSORS_AFRICA_API}/v2/nodes/",
+    response = requests.post(f"{SENSORS_AFRICA_API}/v2/nodes/",
     data=node,
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()['id']
 
 def post_location(location):
-    response = requests.post(f"{settings.SENSORS_AFRICA_API}/v2/locations/",
+    response = requests.post(f"{SENSORS_AFRICA_API}/v2/locations/",
     data=location,
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()['id']
 
 def post_sensor(sensor):
-    response = requests.post(f"{settings.SENSORS_AFRICA_API}/v2/sensors/",
+    response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensors/",
     data=sensor,
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()['id']
 
 def post_sensor_type(sensor_type):
-    response = requests.post(f"{settings.SENSORS_AFRICA_API}/v2/sensor_types/",
+    response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensor_types/",
     data=sensor_type,
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()['id']
 
 def post_sensor_data(data, node_uid, pin):
-    response = requests.post(f"{settings.SENSORS_AFRICA_API}/v1/push-sensor-data/",
+    response = requests.post(f"{SENSORS_AFRICA_API}/v1/push-sensor-data/",
     json=data,
     headers={
-        "Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}",
+        "Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}",
         "X_SENSOR": str(node_uid),
         "PIN": pin
         }
@@ -46,22 +50,22 @@ def post_sensor_data(data, node_uid, pin):
     return []
 
 def get_sensors_africa_sensors():
-    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v2/sensors/",
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    response = requests.get(f"{SENSORS_AFRICA_API}/v2/sensors/",
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()
     return []
     
 def get_sensors_africa_nodes():
-    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v1/node/",
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    response = requests.get(f"{SENSORS_AFRICA_API}/v1/node/",
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()
     return []
 
 def get_sensors_africa_locations():
-    response = requests.get(f"{settings.SENSORS_AFRICA_API}/v2/locations/", 
-    headers={"Authorization": f"Token {settings.SENSORS_AFRICA_AUTH_TOKEN}"})
+    response = requests.get(f"{SENSORS_AFRICA_API}/v2/locations/", 
+    headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         """
             Using latitude, longitude as a key and location id as value to help us find already existing location latter without having to ping the server
@@ -80,7 +84,7 @@ def get_airqo_node_sensors_data(node_id):
         return response.json()
     return []
 
-def run();
+def run():
     locations = get_sensors_africa_locations()
     nodes = get_sensors_africa_nodes()
     sensors = get_sensors_africa_sensors()
@@ -90,7 +94,7 @@ def run();
 
         for channel in channels:
             lat_log = f'{channel["latitude"]}, {channel["longitude"]}'
-            address = utils.address_converter(lat_log)
+            address = address_converter(lat_log)
             
             location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
 
@@ -110,7 +114,7 @@ def run();
             if airqo_node:
                 airqo_node = airqo_node[0]
             else:
-                airqo_node = post_node(node={"uid": channel["id"], 'owner': settings.OWNER_ID, 'location': location})
+                airqo_node = post_node(node={"uid": channel["id"], 'owner': OWNER_ID, 'location': location})
 
 
             channel_data = get_airqo_node_sensors_data(channel["id"])

@@ -1,5 +1,4 @@
 import sentry_sdk
-import settings
 
 from chalice import Chalice, Rate
 from chalicelib import service, settings
@@ -12,12 +11,12 @@ sentry_sdk.init(
     traces_sample_rate=1.0
 )
 
-
 app = Chalice(app_name='sensors-africa-airqo')
 
 @app.route("/")
 def run():
     app.log.debug("run")
+    raise Exception("Testing sentry on chalice local")
     return service.run(app)
 
 # Automatically runs every 5 minutes
