@@ -1,7 +1,17 @@
+import sentry_sdk
 import settings
 
-from chalice import Chalice
+from chalice import Chalice, Rate
 from chalicelib import service, settings
+
+from sentry_sdk.integrations.chalice import ChaliceIntegration
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    integrations=[ChaliceIntegration()],
+    traces_sample_rate=1.0
+)
+
 
 app = Chalice(app_name='sensors-africa-airqo')
 
@@ -11,7 +21,7 @@ def run():
     return service.run(app)
 
 # Automatically runs every 5 minutes
-@app.schedule(Rate(1, unit=Rate.HOURS))
+@app.schedule(Rate(settings.SCHEDULE_RATE, unit=Rate.HOURS))
 def periodic_task(event):
     app.log.debug(event.to_dict())
     return service.run(app)
