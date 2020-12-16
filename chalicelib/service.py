@@ -135,10 +135,9 @@ def run():
                 
                 for feed in channel_data["feeds"]:
                     sensor_data_values = [{
-                            "created": feed["created_at"],
-                            "modified":feed["created_at"],
                             "value": float(feed["field{}".format(str(i))]),
                             "value_type": value_type[i-1]
                         }]
                     # print(sensor_data_values)
-                    post_sensor_data({ "sensordatavalues": sensor_data_values }, channel["id"], str(i))
+                    post_sensor_data(
+                        { "sensordatavalues": sensor_data_values, "timestamp": feed["created_at"]}, channel["id"], str(i))
