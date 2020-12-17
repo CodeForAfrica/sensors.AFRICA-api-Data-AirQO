@@ -41,7 +41,6 @@ def run(app):
 
         for channel in channels:
             channel_data = get_airqo_node_sensors_data(channel["id"])
- 
             #if channel id does not exist initiate it with 0
             if not channel["id"] in channel_last_entry_dict:
                 channel_last_entry_dict[channel["id"]] = 0
@@ -111,4 +110,4 @@ def run(app):
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
 
             
-    return channel_last_entry_dict
+        return channel_last_entry_dict
