@@ -1,10 +1,6 @@
 import requests
 
-from chalicelib.settings import (
-    SENSORS_AFRICA_API,
-    SENSORS_AFRICA_AUTH_TOKEN, 
-    OWNER_ID
-)
+from chalicelib.settings import SENSORS_AFRICA_API, SENSORS_AFRICA_AUTH_TOKEN
 
 def post_node(node):
     response = requests.post(f"{SENSORS_AFRICA_API}/v2/nodes/",
@@ -28,8 +24,8 @@ def post_sensor(sensor):
         return response.json()['id']
 
 def post_sensor_type(sensor_type):
-    response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensor_types/",
-    data=sensor_type,
+    response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensor-types/",
+    json=sensor_type,
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok and "id" in response.json():
         return response.json()['id']
@@ -48,7 +44,7 @@ def post_sensor_data(data, node_uid, pin):
     return []
 
 def get_sensors_africa_sensor_types():
-    response = requests.get(f"{SENSORS_AFRICA_API}/v2/sensor_types/",
+    response = requests.get(f"{SENSORS_AFRICA_API}/v2/sensor-types/",
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok:
         return response.json()

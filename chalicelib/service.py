@@ -13,6 +13,7 @@ from chalicelib.sensorafrica import (
     post_sensor_data,
     post_sensor_type, )
 
+from chalicelib.settings import OWNER_ID
 from chalicelib.utils import address_converter
 
 
@@ -37,7 +38,6 @@ def run():
             address = address_converter(lat_log)
             
             location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
-
             if location:
                 location = location[0]
             else:
@@ -64,12 +64,12 @@ def run():
             # field3 - Sensor2PM2.5_CF_1_ug/m3, 
             # field4 - Sensor2 PM10_CF_1_ug/m3
             if channel_data:
-                sensor_type = [s_type.get("id") for s_type in sensor_types if s_type.get("uid") == "PMS5003"]
+                sensor_type = [s_type.get("id") for s_type in sensor_types if s_type.get("name") == "pms5003"]
                 if sensor_type:
                     sensor_type = sensor_type[0]
                 else:
                     sensor_type = post_sensor_type({ "uid": "PMS5003","name": "pms5003","manufacturer": "PlanTower" })
-                print(sensor_type)
+  
                 value_type = ["P2", "P1", "P2", "P1"]
                 for i in range (1, 5):
                     sensor_id = post_sensor({
@@ -85,6 +85,8 @@ def run():
                                 "value": float(feed["field{}".format(str(i))]),
                                 "value_type": value_type[i-1]
                             }]
-                        # print(sensor_data_values)
-                        post_sensor_data(
-                            { "sensordatavalues": sensor_data_values, "timestamp": feed["created_at"]}, channel["id"], str(i))
+                            
+                        post_sensor_data({ 
+                            "sensordatavalues": sensor_data_values, 
+                            "timestamp": feed["created_at"]
+                            }, channel["id"], str(i))
