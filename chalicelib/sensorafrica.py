@@ -13,15 +13,17 @@ def post_location(location):
     response = requests.post(f"{SENSORS_AFRICA_API}/v2/locations/",
     data=location,
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
-    if response.ok:
+    if response.ok and "id" in response.json():
         return response.json()['id']
+    return None
 
 def post_sensor(sensor):
     response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensors/",
     data=sensor,
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
-    if response.ok:
+    if response.ok and "id" in response.json():
         return response.json()['id']
+    return None
 
 def post_sensor_type(sensor_type):
     response = requests.post(f"{SENSORS_AFRICA_API}/v2/sensor-types/",
@@ -29,6 +31,7 @@ def post_sensor_type(sensor_type):
     headers={"Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}"})
     if response.ok and "id" in response.json():
         return response.json()['id']
+    return None
 
 def post_sensor_data(data, node_uid, pin):
     response = requests.post(f"{SENSORS_AFRICA_API}/v1/push-sensor-data/",

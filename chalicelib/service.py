@@ -24,7 +24,7 @@ def get_airqo_node_sensors_data(node_id):
     return response.json()
 
 
-def run():
+def run(app):
     locations = get_sensors_africa_locations()
     nodes = get_sensors_africa_nodes()
     sensors = get_sensors_africa_sensors()
@@ -85,8 +85,10 @@ def run():
                                 "value": float(feed["field{}".format(str(i))]),
                                 "value_type": value_type[i-1]
                             }]
-                            
+
                         post_sensor_data({ 
                             "sensordatavalues": sensor_data_values, 
                             "timestamp": feed["created_at"]
                             }, channel["id"], str(i))
+            else:
+                app.log.warn("Channel feed - %s missing", channel["id"])
