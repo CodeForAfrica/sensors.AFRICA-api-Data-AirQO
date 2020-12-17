@@ -5,18 +5,17 @@ from chalicelib import service, settings
 
 from sentry_sdk.integrations.chalice import ChaliceIntegration
 
-# sentry_sdk.init(
-#     dsn=settings.SENTRY_DSN,
-#     integrations=[ChaliceIntegration()],
-#     traces_sample_rate=1.0
-# )
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    integrations=[ChaliceIntegration()],
+    traces_sample_rate=1.0
+)
 
 app = Chalice(app_name='sensors-africa-airqo')
 
 @app.route("/")
 def run():
     app.log.debug("run")
-   # raise Exception("Testing sentry on chalice local")
     return service.run()
 
 # Automatically runs every hour
