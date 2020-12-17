@@ -19,7 +19,7 @@ def run():
     return service.run(app)
 
 # Automatically runs every hour
-@app.schedule(Rate(settings.SCHEDULE_RATE, unit=Rate.HOURS))
+@app.schedule(Rate(int(settings.SCHEDULE_RATE), unit=Rate.HOURS))
 def periodic_task(event):
     app.log.debug(event.to_dict())
     return service.run(app)
