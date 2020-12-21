@@ -39,7 +39,7 @@ def run(app):
     sensor_types = get_sensors_africa_sensor_types()
 
     session = boto3.session.Session(region_name="eu-west-1")
-    s3client = session.client()
+    s3client = session.client("s3")
 
     try:
         response = s3client.get_object(Bucket=bucket, Key=key)
