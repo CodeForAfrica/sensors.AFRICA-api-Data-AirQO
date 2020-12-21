@@ -1,3 +1,4 @@
+import boto3
 import json
 import pickle
 import requests
@@ -17,9 +18,15 @@ from chalicelib.sensorafrica import (
 from chalicelib.settings import OWNER_ID
 from chalicelib.utils import address_converter
 
+from time import sleep
+
+bucket="cfa-airquality"
+key="airqo-channel-last-entry-id.p"
+
 
 def get_airqo_node_sensors_data(node_id):
-    response = requests.get("https://thingspeak.com/channels/{}/feeds.json".format(node_id))
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+    response = requests.get(url="https://thingspeak.com/channels/{}/feeds.json".format(node_id), headers=headers)
     if not response.ok:
         raise Exception(response.reason)
     return response.json()
@@ -31,8 +38,13 @@ def run(app):
     sensors = get_sensors_africa_sensors()
     sensor_types = get_sensors_africa_sensor_types()
 
+    session = boto3.session.Session(region_name="eu-west-1")
+    s3client = session.client()
+
     try:
-        channel_last_entry_dict = pickle.load( open( "save.p", "rb" ) )
+        response = s3client.get_object(Bucket=bucket, Key=key)
+        body = response['Body'].read()
+        channel_last_entry_dict = pickle.load(body)
     except:
         channel_last_entry_dict = dict()
 
@@ -88,7 +100,7 @@ def run(app):
                         "pin": str(i),
                         "descriptiion": "",
                         "sensor_type": sensor_type,
-                        "public": True
+                        "public": False
                     })
                     
                     for feed in channel_data["feeds"]:
@@ -102,12 +114,11 @@ def run(app):
                                 "sensordatavalues": sensor_data_values, 
                                 "timestamp": feed["created_at"]
                                 }, channel["id"], str(i))
+                
                 #update pickle variable               
                 channel_last_entry_dict[channel["id"]] = channel_data["channel"]["last_entry_id"]
-                pickle.dump( channel_last_entry_dict, open( "save.p", "wb" ) )
-                
+                s3client.put_object(Bucket=bucket, Key=key, Body=pickle.dump(channel_last_entry_dict))
             else:
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
 
-            
-        return channel_last_entry_dict
+            sleep(30)
