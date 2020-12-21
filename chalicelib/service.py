@@ -15,14 +15,10 @@ from chalicelib.sensorafrica import (
     post_sensor_data,
     post_sensor_type, )
 
-from chalicelib.settings import OWNER_ID
+from chalicelib.settings import S3_BUCKET_NAME, S3_OBJECT_KEY, OWNER_ID
 from chalicelib.utils import address_converter
 
 from time import sleep
-
-bucket="cfa-airquality"
-key="airqo-channel-last-entry-id.p"
-
 
 def get_airqo_node_sensors_data(node_id):
     headers = {
@@ -43,7 +39,7 @@ def run(app):
     s3client = session.client("s3")
 
     try:
-        response = s3client.get_object(Bucket=bucket, Key=key)
+        response = s3client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
         body = response['Body'].read()
         channel_last_entry_dict = pickle.loads(body)
     except:
@@ -118,7 +114,7 @@ def run(app):
                 
                 #update pickle variable               
                 channel_last_entry_dict[channel["id"]] = channel_data["channel"]["last_entry_id"]
-                s3client.put_object(Body=pickle.dumps(channel_last_entry_dict), Bucket=bucket, Key=key)
+                s3client.put_object(Body=pickle.dumps(channel_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
             else:
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
 
