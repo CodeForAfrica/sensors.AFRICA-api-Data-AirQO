@@ -25,7 +25,8 @@ key="airqo-channel-last-entry-id.p"
 
 
 def get_airqo_node_sensors_data(node_id):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36'}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"}
     response = requests.get(url="https://thingspeak.com/channels/{}/feeds.json".format(node_id), headers=headers)
     if not response.ok:
         raise Exception(response.reason)
@@ -44,10 +45,10 @@ def run(app):
     try:
         response = s3client.get_object(Bucket=bucket, Key=key)
         body = response['Body'].read()
-        channel_last_entry_dict = pickle.load(body)
+        channel_last_entry_dict = pickle.loads(body)
     except:
         channel_last_entry_dict = dict()
-
+   
     with open("chalicelib/channels.json") as data:
         channels = json.load(data)
 
@@ -117,8 +118,8 @@ def run(app):
                 
                 #update pickle variable               
                 channel_last_entry_dict[channel["id"]] = channel_data["channel"]["last_entry_id"]
-                s3client.put_object(Bucket=bucket, Key=key, Body=pickle.dump(channel_last_entry_dict))
+                s3client.put_object(Body=pickle.dumps(channel_last_entry_dict), Bucket=bucket, Key=key)
             else:
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
 
-            sleep(30)
+            sleep(60)

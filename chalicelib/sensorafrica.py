@@ -39,7 +39,7 @@ def post_sensor_data(data, node_uid, pin):
     headers={
         "Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}",
         "X_SENSOR": str(node_uid),
-        "PIN": pin
+        "X_PIN": pin
         }
     )
     if response.ok:
