@@ -20,7 +20,7 @@ app = Chalice(app_name='sensors-africa-airqo')
 #     return service.run(app)
 
 # Automatically runs every hour
-@app.schedule(Rate(int(SCHEDULE_RATE), unit=Rate.MINUTES))
+@app.schedule(Rate(int(SCHEDULE_RATE), unit=Rate.HOURS))
 def periodic_task(event):
     app.log.debug(event.to_dict())
     run(app)
