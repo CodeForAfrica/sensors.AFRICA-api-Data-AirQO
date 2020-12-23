@@ -119,4 +119,4 @@ def run(app):
             else:
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
 
-            sleep(60)
+            sleep(30)

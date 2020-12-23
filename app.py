@@ -14,13 +14,13 @@ sentry_sdk.init(
 
 app = Chalice(app_name='sensors-africa-airqo')
 
-# @app.route("/")
-# def run():
-#     app.log.debug("run")
-#     return service.run(app)
+@app.route("/")
+def index():
+    app.log.debug("run")
+    run(app)
 
 # Automatically runs every hour
-@app.schedule(Rate(int(SCHEDULE_RATE), unit=Rate.HOURS))
+@app.schedule(Rate(1, unit=Rate.MINUTES))
 def periodic_task(event):
     app.log.debug(event.to_dict())
     run(app)
