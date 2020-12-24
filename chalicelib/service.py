@@ -118,4 +118,5 @@ def run(app):
                 s3client.put_object(Body=pickle.dumps(channel_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
             else:
                 app.log.warn("Channel feed - %s missing or not updated", channel["id"])
-            sleep(30)
+                
+            sleep(5)
