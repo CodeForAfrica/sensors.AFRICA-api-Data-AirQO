@@ -15,10 +15,10 @@ from chalicelib.sensorafrica import (
     post_sensor_data,
     post_sensor_type, )
 
-from chalicelib.settings import S3_BUCKET_NAME, S3_OBJECT_KEY, OWNER_ID
+from chalicelib.settings import S3_BUCKET_NAME, S3_CHANNEL_START_KEY, S3_OBJECT_KEY, OWNER_ID
 from chalicelib.utils import address_converter
 
-from time import sleep
+from time import localtime, sleep, strftime
 
 def get_airqo_node_sensors_data(node_id):
     headers = {
@@ -28,29 +28,35 @@ def get_airqo_node_sensors_data(node_id):
         raise Exception(response.reason)
     return response.json()
 
-
 def run(app):
     locations = get_sensors_africa_locations()
     nodes = get_sensors_africa_nodes()
     sensors = get_sensors_africa_sensors()
     sensor_types = get_sensors_africa_sensor_types()
 
-    session = boto3.session.Session(region_name="eu-west-1")
-    s3client = session.client("s3")
 
+    s3client = boto3.client("s3")
     try:
         response = s3client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
         body = response['Body'].read()
         channel_last_entry_dict = pickle.loads(body)
     except:
         channel_last_entry_dict = dict()
+
+    try:
+        res = s3client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_CHANNEL_START_KEY)
+        channel_start_index = pickle.loads(res['Body'].read())
+    except:
+        channel_start_index = { "start": 0 }
    
     with open("chalicelib/channels.json") as data:
         channels = json.load(data)
 
-        for channel in channels:
-            channel_data = get_airqo_node_sensors_data(channel["id"])
+        sliced_channels = channels[channel_start_index["start"] : channel_start_index["start"] + 10]
 
+        for channel in sliced_channels:
+            
+            channel_data = get_airqo_node_sensors_data(channel["id"])
             #if channel id key does not exist in the map dict initiate it with 0
             if not channel["id"] in channel_last_entry_dict:
                 channel_last_entry_dict[channel["id"]] = 0
@@ -117,6 +123,14 @@ def run(app):
                 channel_last_entry_dict[channel["id"]] = channel_data["channel"]["last_entry_id"]
                 s3client.put_object(Body=pickle.dumps(channel_last_entry_dict), Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
             else:
-                app.log.warn("Channel feed - %s missing or not updated", channel["id"])
+                app.log.warn("Channel feed - %s missing or not updated" % channel["id"])
                 
             sleep(5)
+
+        channel_start_index = { "start": channel_start_index["start"] + 10 if channel_start_index["start"] + 10 < len(channels) else 0}
+        s3client.put_object(Body=pickle.dumps(channel_start_index), Bucket=S3_BUCKET_NAME, Key=S3_CHANNEL_START_KEY)
+
+        return {
+            "Last Updated": strftime("%a, %d %b %Y %H:%M:%S", localtime()),
+            "Channels Updated": [{"id": c["id"], "name": c["name"] } for c in sliced_channels]
+        }
