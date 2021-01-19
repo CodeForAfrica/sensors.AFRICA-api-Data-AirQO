@@ -35,7 +35,7 @@ def run(app):
     sensor_types = get_sensors_africa_sensor_types()
 
 
-    s3client = boto3.client("s3")
+    s3client = boto3.client("s3", region_name="eu-west-1")
     try:
         response = s3client.get_object(Bucket=S3_BUCKET_NAME, Key=S3_OBJECT_KEY)
         body = response['Body'].read()
@@ -97,16 +97,26 @@ def run(app):
                 # field2 -Sensor1 PM10_CF_1_ug/m3, 
                 # field3 - Sensor2PM2.5_CF_1_ug/m3, 
                 # field4 - Sensor2 PM10_CF_1_ug/m3
-
                 #So we will create 2 sensors for each node
-                sensor_1_id = post_sensor({
+
+                sensor_1_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "1" and "sensor_type" == sensor_type]
+
+                if len(sensor_1_id) > 0:
+                    sensor_1_id = sensor_1_id[0]
+                else:
+                    sensor_1_id = post_sensor({
                         "node": airqo_node,
                         "pin": "1",
                         "sensor_type": sensor_type,
                         "public": False
                     })
 
-                sensor_2_id = post_sensor({
+                sensor_2_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "3" and "sensor_type" == sensor_type]
+
+                if len(sensor_2_id) > 0:
+                    sensor_2_id = sensor_2_id[0]
+                else:
+                    sensor_2_id = post_sensor({
                         "node": airqo_node,
                         "pin": "3",
                         "sensor_type": sensor_type,
