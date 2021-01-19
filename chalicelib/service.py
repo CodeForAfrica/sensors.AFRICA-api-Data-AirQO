@@ -68,7 +68,7 @@ def run(app):
                 address = address_converter(lat_log)
                 
                 location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
-                if location:
+                if len(location) > 0:
                     location = location[0]
                 else:
                     location = post_location({
@@ -81,43 +81,72 @@ def run(app):
 
                 #post node objects if it does not exist
                 airqo_node = [node.get("id") for node in nodes if node.get('uid') == str(channel["id"])]
-                if airqo_node:
+                if len(airqo_node) > 0:
                     airqo_node = airqo_node[0]
                 else:
                     airqo_node = post_node(node={"uid": channel["id"], 'owner': int(OWNER_ID), 'location': location})
 
-                # aiqo channel result has 4 sensors data that we need
-                # field1- Sensor1 PM2.5_CF_1_ug/m3, 
-                # field2 -Sensor1 PM10_CF_1_ug/m3, 
-                # field3 - Sensor2PM2.5_CF_1_ug/m3, 
-                # field4 - Sensor2 PM10_CF_1_ug/m3
-                sensor_type = [s_type.get("id") for s_type in sensor_types if s_type.get("uid") == "PMS5003"]
-                if sensor_type:
+                sensor_type = [s_type.get("id") for s_type in sensor_types if str(s_type.get("uid")).lower() == "pms5003"]
+                if len(sensor_type) > 0:
                     sensor_type = sensor_type[0]
                 else:
                     sensor_type = post_sensor_type({ "uid": "pms5003","name": "PMS5003","manufacturer": "PlanTower" })
   
-                value_type = ["P2", "P1", "P2", "P1"]
-                for i in range (1, 5):
-                    sensor_id = post_sensor({
+                # aiqo channel result has 4 field data that we need from 2 different sensors
+                # field1- Sensor1 PM2.5_CF_1_ug/m3, 
+                # field2 -Sensor1 PM10_CF_1_ug/m3, 
+                # field3 - Sensor2PM2.5_CF_1_ug/m3, 
+                # field4 - Sensor2 PM10_CF_1_ug/m3
+
+                #So we will create 2 sensors for each node
+                sensor_1_id = post_sensor({
                         "node": airqo_node,
-                        "pin": str(i),
-                        "descriptiion": "",
+                        "pin": "1",
                         "sensor_type": sensor_type,
                         "public": False
                     })
-                    
-                    for feed in channel_data["feeds"]:
-                        if feed["entry_id"] > last_entry:
-                            sensor_data_values = [{
-                                    "value": float(feed["field{}".format(str(i))]),
-                                    "value_type": value_type[i-1]
-                                }]
 
-                            post_sensor_data({ 
-                                "sensordatavalues": sensor_data_values, 
-                                "timestamp": feed["created_at"]
-                                }, channel["id"], str(i))
+                sensor_2_id = post_sensor({
+                        "node": airqo_node,
+                        "pin": "3",
+                        "sensor_type": sensor_type,
+                        "public": False
+                    })
+
+                #loop through feed and post data values                    
+                for feed in channel_data["feeds"]:
+                    if feed["entry_id"] > last_entry:
+                        sensor_1_data_values = [
+                            {
+                                "value": float(feed["field1"]),
+                                "value_type": "P2"
+                            },
+                            {
+                                "value": float(feed["field2"]),
+                                "value_type": "P1"
+                            }
+                        ]
+
+                        sensor_2_data_values = [
+                            {
+                                "value": float(feed["field3"]),
+                                "value_type": "P2"
+                            },
+                            {
+                                "value": float(feed["field4"]),
+                                "value_type": "P1"
+                            }
+                        ]
+
+                        post_sensor_data({ 
+                            "sensordatavalues": sensor_1_data_values, 
+                            "timestamp": feed["created_at"]
+                            }, channel["id"], "1")
+
+                        post_sensor_data({ 
+                            "sensordatavalues": sensor_2_data_values, 
+                            "timestamp": feed["created_at"]
+                            }, channel["id"], "3")
                 
                 #update pickle variable               
                 channel_last_entry_dict[channel["id"]] = channel_data["channel"]["last_entry_id"]
