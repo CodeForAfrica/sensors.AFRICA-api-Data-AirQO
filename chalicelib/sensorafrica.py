@@ -38,13 +38,13 @@ def post_sensor_data(data, node_uid, pin):
     json=data,
     headers={
         "Authorization": f"Token {SENSORS_AFRICA_AUTH_TOKEN}",
-        "X_SENSOR": str(node_uid),
-        "X_PIN": pin
+        "SENSOR": str(node_uid),
+        "PIN": pin
         }
     )
     if response.ok:
         return response.json()
-    raise Exception(response.text)
+    return []
 
 def get_sensors_africa_sensor_types():
     response = requests.get(f"{SENSORS_AFRICA_API}/v2/sensor-types/",

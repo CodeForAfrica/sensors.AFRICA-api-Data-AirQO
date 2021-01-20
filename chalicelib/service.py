@@ -99,8 +99,7 @@ def run(app):
                 # field4 - Sensor2 PM10_CF_1_ug/m3
                 #So we will create 2 sensors for each node
 
-                sensor_1_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "1" and "sensor_type" == sensor_type]
-
+                sensor_1_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "1" and sen.get("sensor_type") == sensor_type]
                 if len(sensor_1_id) > 0:
                     sensor_1_id = sensor_1_id[0]
                 else:
@@ -111,7 +110,7 @@ def run(app):
                         "public": False
                     })
 
-                sensor_2_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "3" and "sensor_type" == sensor_type]
+                sensor_2_id = [sen.get("id") for sen in sensors if sen.get("node") == airqo_node and sen.get("pin") == "3" and sen.get("sensor_type") == sensor_type]
 
                 if len(sensor_2_id) > 0:
                     sensor_2_id = sensor_2_id[0]
