@@ -28,6 +28,13 @@ def get_airqo_node_sensors_data(node_id):
         raise Exception(response.reason)
     return response.json()
 
+
+def history(app):
+    #function assumes node & sensors already exists
+    nodes = get_sensors_africa_nodes()
+    sensors = get_sensors_africa_sensors()
+
+
 def run(app):
     locations = get_sensors_africa_locations()
     nodes = get_sensors_africa_nodes()
