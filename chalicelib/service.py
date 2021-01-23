@@ -64,7 +64,7 @@ def run(app):
             last_entry = channel_last_entry_dict[channel["id"]]
 
             if channel_data and channel_data["channel"]["last_entry_id"] > last_entry:
-                lat_log = f'{channel["latitude"]}, {channel["longitude"]}'
+                lat_log = f"{round(float(channel['latitude']), 3)}, {round(float(channel['longitude']), 3)}"
                 address = address_converter(lat_log)
                 
                 location = [loc.get(lat_log) for loc in locations if loc.get(lat_log)]
