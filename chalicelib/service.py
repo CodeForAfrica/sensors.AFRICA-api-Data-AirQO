@@ -20,12 +20,12 @@ from chalicelib.utils import address_converter
 
 from time import localtime, sleep, strftime
 
-def get_airqo_node_sensors_data(node_id):
+def get_airqo_node_sensors_data(node_id, app):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36"}
     response = requests.get(url="https://thingspeak.com/channels/{}/feeds.json".format(node_id), headers=headers)
     if not response.ok:
-        raise Exception(response.reason)
+        app.log.warn(response.reason)
     return response.json()
 
 def run(app):
@@ -55,7 +55,7 @@ def run(app):
         sliced_channels = channels[channel_start_index["start"] : channel_start_index["start"] + 10]
 
         for channel in sliced_channels:
-            channel_data = get_airqo_node_sensors_data(channel["id"])
+            channel_data = get_airqo_node_sensors_data(channel["id"], app)
             #if channel id key does not exist in the map dict initiate it with 0
             if not channel["id"] in channel_last_entry_dict:
                 channel_last_entry_dict[channel["id"]] = 0
