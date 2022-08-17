@@ -26,6 +26,7 @@ def get_airqo_node_sensors_data(node_id, app):
     response = requests.get(url="https://thingspeak.com/channels/{}/feeds.json".format(node_id), headers=headers)
     if not response.ok:
         app.log.warn(response.reason)
+        return
     return response.json()
 
 def run(app):
